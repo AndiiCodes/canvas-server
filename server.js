@@ -7,8 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors()); 
 const canvasBaseUrl = "https://rmit.instructure.com/api/v1/";
-const apiToken =
-  "9595~ujEzKno7r3vgscefoQNlGgcz1W506Ag60pExICFBnoxsgWnoPwyi16IlKJ1l58eW"; 
+const apiToken =process.env.API_KEY;
 
 app.use(express.static("public"));
 

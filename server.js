@@ -16,12 +16,8 @@ const fetchAllPages = async (url) => {
   let nextUrl = url;
 
   while (nextUrl) {
-    console.log(`Fetching URL: ${nextUrl}`);
     const response = await fetch(nextUrl);
-    if (!response.ok) {
-      console.error(`Error fetching data from ${nextUrl}: ${response.status} ${response.statusText}`);
-      throw new Error(`Error fetching data: ${response.status} ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error("Error fetching data");
     const data = await response.json();
     results = results.concat(data);
 
@@ -46,13 +42,11 @@ const fetchAllPages = async (url) => {
 
 app.get("/api/courses", async (req, res) => {
   try {
-    const coursesUrl = `${canvasBaseUrl}courses?access_token=${apiToken}`;
-    console.log(`Courses URL: ${coursesUrl}`);
+    const coursesUrl = `${canvasBaseUrl}courses?access_token=${apiToken}&enrollment_state=all`;
     const courses = await fetchAllPages(coursesUrl);
 
     for (const course of courses) {
       const assignmentsUrl = `${canvasBaseUrl}courses/${course.id}/assignments?access_token=${apiToken}`;
-      console.log(`Assignments URL for course ${course.id}: ${assignmentsUrl}`);
       course.assignments = await fetchAllPages(assignmentsUrl);
     }
 
@@ -67,7 +61,6 @@ app.get("/api/courses/:courseId/assignments", async (req, res) => {
   try {
     const courseId = req.params.courseId;
     const assignmentsUrl = `${canvasBaseUrl}courses/${courseId}/assignments?access_token=${apiToken}`;
-    console.log(`Assignments URL for course ${courseId}: ${assignmentsUrl}`);
     const assignments = await fetchAllPages(assignmentsUrl);
     res.json(assignments);
   } catch (error) {

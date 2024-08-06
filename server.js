@@ -7,26 +7,50 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors()); 
 const canvasBaseUrl = "https://rmit.instructure.com/api/v1/";
-const apiToken =process.env.API_KEY;
+const apiToken = process.env.API_KEY;
 
 app.use(express.static("public"));
 
+const fetchAllPages = async (url) => {
+  let results = [];
+  let nextUrl = url;
+
+  while (nextUrl) {
+    console.log(`Fetching URL: ${nextUrl}`);  // Logging the URL being fetched
+    const response = await fetch(nextUrl);
+    if (!response.ok) throw new Error("Error fetching data");
+    const data = await response.json();
+    results = results.concat(data);
+
+    // Parse the link header to find the next page URL
+    const linkHeader = response.headers.get("link");
+    if (linkHeader) {
+      const links = linkHeader.split(",").reduce((acc, link) => {
+        const match = link.match(/<([^>]+)>;\s*rel="([^"]+)"/);
+        if (match) {
+          acc[match[2]] = match[1];
+        }
+        return acc;
+      }, {});
+      nextUrl = links.next || null;
+    } else {
+      nextUrl = null;
+    }
+  }
+
+  return results;
+};
+
 app.get("/api/courses", async (req, res) => {
   try {
-    const coursesResponse = await fetch(
-      `${canvasBaseUrl}courses?access_token=${apiToken}`
-    );
-    if (!coursesResponse.ok) throw new Error("Error fetching courses");
-    const courses = await coursesResponse.json();
+    const coursesUrl = `${canvasBaseUrl}courses?access_token=${apiToken}`;
+    console.log(`Courses URL: ${coursesUrl}`);  // Log the initial courses URL
+    const courses = await fetchAllPages(coursesUrl);
 
     for (const course of courses) {
-      const assignmentsResponse = await fetch(
-        `${canvasBaseUrl}courses/${course.id}/assignments?access_token=${apiToken}`
-      );
-      if (!assignmentsResponse.ok)
-        throw new Error(`Error fetching assignments for course ${course.id}`);
-      const assignments = await assignmentsResponse.json();
-      course.assignments = assignments;
+      const assignmentsUrl = `${canvasBaseUrl}courses/${course.id}/assignments?access_token=${apiToken}`;
+      console.log(`Assignments URL for course ${course.id}: ${assignmentsUrl}`);  // Log the assignments URL for each course
+      course.assignments = await fetchAllPages(assignmentsUrl);
     }
 
     res.json(courses);
@@ -39,12 +63,9 @@ app.get("/api/courses", async (req, res) => {
 app.get("/api/courses/:courseId/assignments", async (req, res) => {
   try {
     const courseId = req.params.courseId;
-    const assignmentsResponse = await fetch(
-      `${canvasBaseUrl}courses/${courseId}/assignments?access_token=${apiToken}`
-    );
-    if (!assignmentsResponse.ok)
-      throw new Error(`Error fetching assignments for course ${courseId}`);
-    const assignments = await assignmentsResponse.json();
+    const assignmentsUrl = `${canvasBaseUrl}courses/${courseId}/assignments?access_token=${apiToken}`;
+    console.log(`Assignments URL for course ${courseId}: ${assignmentsUrl}`);  // Log the assignments URL for the specific course
+    const assignments = await fetchAllPages(assignmentsUrl);
     res.json(assignments);
   } catch (error) {
     console.error("Fetch error:", error);
@@ -55,3 +76,4 @@ app.get("/api/courses/:courseId/assignments", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+

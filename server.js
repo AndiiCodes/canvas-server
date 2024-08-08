@@ -89,7 +89,9 @@ const courseIds = {
   "129983": "Implement cloud infrastructure with code",
   "129984": "Implement virtual network in cloud environments",
   "129986": "Manage infrastructure in cloud environments",
-  "129989": "Manage network security"
+  "129989": "Manage network security",
+  "129981": "Apply intermediate object-oriented language skills",
+  "129985": "Build and deploy resources on cloud platforms"
 };
 
 app.get("/api/courses", async (req, res) => {

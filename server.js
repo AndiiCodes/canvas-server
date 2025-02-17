@@ -17,9 +17,7 @@ if (!apiToken) {
 }
 
 
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+
 
 
 async function fetchAllCourses() {
@@ -50,8 +48,7 @@ async function fetchAllCourses() {
     const nextPageMatch = linkHeader?.match(/<([^>]+)>;\s*rel="next"/);
     url = nextPageMatch ? nextPageMatch[1] : null;
 
-   
-    await delay(10);
+
   }
 
   return courses;

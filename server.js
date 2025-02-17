@@ -51,7 +51,7 @@ async function fetchAllCourses() {
     url = nextPageMatch ? nextPageMatch[1] : null;
 
    
-    await delay(500);
+    await delay(10);
   }
 
   return courses;
